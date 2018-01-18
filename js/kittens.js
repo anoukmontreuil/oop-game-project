@@ -109,18 +109,18 @@ class Engine {
             this.enemies = [];
         }
 
-        while (this.enemies.filter(e => !!e).length < MAX_ENEMIES) {
+        while (this.enemies.filter(e => e).length < MAX_ENEMIES) { // removed !! after arrow: unnecessary.
             this.addEnemy();
         }
     }
 
     // This method finds a random spot where there is no enemy, and puts one in there
     addEnemy() {
-        var enemySpots = GAME_WIDTH / ENEMY_WIDTH;
+        var enemySpots = (GAME_WIDTH / ENEMY_WIDTH);
 
         var enemySpot;
         // Keep looping until we find a free enemy spot at random
-        while (!enemySpot || this.enemies[enemySpot]) {
+        while (this.enemies[enemySpot]) { // Removed: !enemySpot || so that lane 0 (leftmost) can spawn enemies
             enemySpot = Math.floor(Math.random() * enemySpots);
         }
 
@@ -150,7 +150,6 @@ class Engine {
     During each execution of the function, we will update the positions of all game entities
     It's also at this point that we will check for any collisions between the game entities
     Collisions will often indicate either a player death or an enemy kill
-
     In order to allow the game objects to self-determine their behaviors, gameLoop will call the `update` method of each entity
     To account for the fact that we don't always have 60 frames per second, gameLoop will send a time delta argument to `update`
     You should use this parameter to scale your update appropriately
