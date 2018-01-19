@@ -10,19 +10,29 @@ const MAX_ENEMIES = 3;
 const PLAYER_WIDTH = 75;
 const PLAYER_HEIGHT = 70; // originally: 54
 const PLAYER_TOP_BUFFER = 10; // ADDED as a constant instead of keeping it hard-coded.
-var PLAYER_START_NUM_LIVES = 5; // ADDED
+const PLAYER_START_NUM_LIVES = 5; // ADDED
 
 // These two constants keep us from using "magic numbers" in our code
 const LEFT_ARROW_CODE = 37;
+const UP_ARROW_CODE = 38; // ADDED
 const RIGHT_ARROW_CODE = 39;
+const DOWN_ARROW_CODE = 40; // ADDED
+
+// Added directionality to the shooting...
+const LEFT_SHOOT_CODE = 65; // ADDED
+const RIGHT_SHOOT_CODE = 68; // ADDED
+const UP_SHOOT_CODE = 87; // ADDED
+const DOWN_SHOOT_CODE = 83; // ADDED
 
 // These two constants allow us to DRY
 const MOVE_LEFT = 'left';
 const MOVE_RIGHT = 'right';
+const MOVE_UP = 'up'; // ADDED
+const MOVE_DOWN = 'down'; // ADDED
 
 // Preload game images
-var images = {};
-['enemy.png', 'cookie_cat_8-bit_background_SHADOW.png', 'player.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
+const images = {};
+['enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 'playerGameOver.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -72,6 +82,16 @@ class Player extends Entity {
         else if (direction === MOVE_RIGHT && this.x < GAME_WIDTH - PLAYER_WIDTH) {
             this.x = this.x + PLAYER_WIDTH;
         }
+        else if (direction === MOVE_UP && this.y > 0) {
+            this.y = this.y - PLAYER_HEIGHT;
+        }
+        else if (direction === MOVE_DOWN && this.y < GAME_HEIGHT - (2 * PLAYER_HEIGHT)) {
+            this.y = this.y + PLAYER_HEIGHT;
+        }
+    }
+
+    shoot(direction) {
+        console.log("shootin' " + direction + "!");
     }
 }
 
@@ -138,11 +158,16 @@ class Engine {
 
         // Listen for keyboard left/right and update the player
         document.addEventListener('keydown', e => {
-            if (e.keyCode === LEFT_ARROW_CODE) {
-                this.player.move(MOVE_LEFT);
-            }
-            else if (e.keyCode === RIGHT_ARROW_CODE) {
-                this.player.move(MOVE_RIGHT);
+            switch (e.keyCode) {
+                case LEFT_ARROW_CODE: this.player.move(MOVE_LEFT); break;
+                case RIGHT_ARROW_CODE: this.player.move(MOVE_RIGHT); break;
+                case UP_ARROW_CODE: this.player.move(MOVE_UP); break;
+                case DOWN_ARROW_CODE: this.player.move(MOVE_DOWN); break;
+
+                case LEFT_SHOOT_CODE: this.player.shoot(MOVE_LEFT); break;
+                case RIGHT_SHOOT_CODE: this.player.shoot(MOVE_RIGHT); break;
+                case UP_SHOOT_CODE: this.player.shoot(MOVE_UP); break;
+                case DOWN_SHOOT_CODE: this.player.shoot(MOVE_DOWN); break;
             }
         });
 
@@ -170,14 +195,12 @@ class Engine {
         this.enemies.forEach(enemy => enemy.update(timeDiff));
 
         // Draw everything!
-        this.ctx.drawImage(images['cookie_cat_8-bit_background_SHADOW.png'], 0, 0); // draw the star bg
+        this.ctx.drawImage(images['cookie_cat_8-bit_starry_background.png'], 0, 0); // draw the cookie cat background
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
         this.player.render(this.ctx); // draw the player
 
         // Check if any enemies should die
         this.enemies.forEach((enemy, enemyIdx) => {
-            // console.log("Enemy # " + enemyIdx + " @ position y: " + (enemy.y + ENEMY_RAINBOW_BUFFER) + (ENEMY_HEIGHT - ENEMY_RAINBOW_BUFFER));
-            // console.log("Enemy # " + enemyIdx + " @ position x: " + enemy.x);
             if (enemy.y > GAME_HEIGHT) {
                 delete this.enemies[enemyIdx];
             }
@@ -187,14 +210,14 @@ class Engine {
         // Check if player is dead
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
-            this.ctx.font = 'bold 30px Impact';
-            this.ctx.fillStyle = '#F30';
-            this.ctx.fillText(this.score + ' ♦ GAME OVER', 5, 30);
+            this.ctx.font = 'bold 16px "Press Start 2P"';
+            this.ctx.fillStyle = '#60F';
+            this.ctx.fillText(this.score + ' * GAME OVER', 5, 30);
         }
         else {
             // If player is not dead, then draw the score
-            this.ctx.font = 'bold 30px Impact';
-            this.ctx.fillStyle = '#FFF';
+            this.ctx.font = 'bold 16px "Press Start 2P"';
+            this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText(this.score, 5, 30);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
@@ -203,7 +226,6 @@ class Engine {
     }
 
     setPostHitTimer() {
-
     }
 
     isPlayerDead() {
@@ -211,27 +233,24 @@ class Engine {
                                          && (this.player.y + PLAYER_HEIGHT) > enemy.y + ENEMY_RAINBOW_BUFFER
                                          && enemy.x === this.player.x)) {
                 if (!this.player.numLives > 0) {
+                    this.player.sprite = images['playerGameOver.png'];
+                    this.ctx.drawImage(images['lion_licker_static_bg.gif'], 0, 0);
+                    this.player.render(this.ctx);
                     return true;
                 } else {
                     this.player.numLives--;
-                    // Set a 1 second timeout before player is able to be legally struck again; otherwise
+                    // TODO: Set a 1 second timeout before player is able to be legally struck again; otherwise
                     // he'll keep dying on the first touch.
                     return false;
                 }
             }
         }
     }
-    
-    /*isPlayerDead() {
-        // TODO: fix this function!
-        //return this.enemies
-        //.some((enemy) => enemy.y + ENEMY_HEIGHT >= this.player.y && enemy.x === this.player.x);
-    }
-}*/
 
 
 
 
 // This section will start the game
-var gameEngine = new Engine(document.getElementById('app'));
+var gameEngine = new Engine(document.getElementById('game'));
+
 gameEngine.start();
