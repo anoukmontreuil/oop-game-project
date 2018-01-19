@@ -22,7 +22,7 @@ const MOVE_RIGHT = 'right';
 
 // Preload game images
 var images = {};
-['enemy.png', 'stars.png', 'player.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
+['enemy.png', 'cookie_cat_8-bit_background_SHADOW.png', 'player.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -170,7 +170,7 @@ class Engine {
         this.enemies.forEach(enemy => enemy.update(timeDiff));
 
         // Draw everything!
-        this.ctx.drawImage(images['stars.png'], 0, 0); // draw the star bg
+        this.ctx.drawImage(images['cookie_cat_8-bit_background_SHADOW.png'], 0, 0); // draw the star bg
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
         this.player.render(this.ctx); // draw the player
 
@@ -188,13 +188,13 @@ class Engine {
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
             this.ctx.font = 'bold 30px Impact';
-            this.ctx.fillStyle = '#F00';
-            this.ctx.fillText(this.score + ' GAME OVER', 5, 30);
+            this.ctx.fillStyle = '#F30';
+            this.ctx.fillText(this.score + ' ♦ GAME OVER', 5, 30);
         }
         else {
             // If player is not dead, then draw the score
             this.ctx.font = 'bold 30px Impact';
-            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillStyle = '#FFF';
             this.ctx.fillText(this.score, 5, 30);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
