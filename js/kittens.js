@@ -224,6 +224,7 @@ class Engine {
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('SCORE: ' + this.score, 5, 30);
+            this.ctx.fillText('LIVES: ' + this.player.numLives, (GAME_WIDTH / 11) * 7, 30);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
