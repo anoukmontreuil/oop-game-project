@@ -6,7 +6,7 @@ const GAME_HEIGHT = 500;
 
 const ENEMY_WIDTH = 75;
 const ENEMY_HEIGHT = 156;
-const ENEMY_RAINBOW_BUFFER = 58;
+const ENEMY_TOP_BUFFER = 58;
 const MAX_ENEMIES = 3;
 
 const PLAYER_WIDTH = 75;
@@ -134,7 +134,6 @@ class Engine {
         if (!this.enemies) {
             this.enemies = [];
         }
-
         while (this.enemies.filter(e => e).length < MAX_ENEMIES) { // removed !! after arrow: unnecessary.
             this.addEnemy();
         }
@@ -173,6 +172,8 @@ class Engine {
             }
         });
 
+        // TODO: Add Splash Screen...
+
         this.gameLoop();
     }
 
@@ -206,13 +207,22 @@ class Engine {
         this.enemies.forEach((enemy, enemyIdx) => {
             if (enemy.y > GAME_HEIGHT) {
                 delete this.enemies[enemyIdx];
+            } else if ((enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= this.player.y
+                      && (this.player.y + PLAYER_HEIGHT) > enemy.y + ENEMY_TOP_BUFFER
+                      && enemy.x === this.player.x) {
+                this.player.numLives--;
+                delete this.enemies[enemyIdx];
             }
         });
+
         this.setupEnemies();
 
         // Check if player is dead
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
+            this.player.sprite = images['playerGameOver.png'];
+            this.ctx.drawImage(images['lion_licker_static_bg.gif'], 0, 0);
+            this.player.render(this.ctx);
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('Ugh, Lion Lickers SUCK!', 5, 30);
@@ -232,23 +242,13 @@ class Engine {
     }
 
     isPlayerDead() {
-        if (this.enemies.some((enemy) => (enemy.y + ENEMY_RAINBOW_BUFFER) + (ENEMY_HEIGHT - ENEMY_RAINBOW_BUFFER) >= this.player.y
-                                         && (this.player.y + PLAYER_HEIGHT) > enemy.y + ENEMY_RAINBOW_BUFFER
-                                         && enemy.x === this.player.x)) {
-                if (!this.player.numLives > 0) {
-                    this.player.sprite = images['playerGameOver.png'];
-                    this.ctx.drawImage(images['lion_licker_static_bg.gif'], 0, 0);
-                    this.player.render(this.ctx);
-                    return true;
-                } else {
-                    this.player.numLives--;
-                    // TODO: Set a 1 second timeout before player is able to be legally struck again; otherwise
-                    // he'll keep dying on the first touch.
-                    return false;
-                }
-            }
+        if (!this.player.numLives > 0) {
+            return true;
+        } else {
+            return false;
         }
     }
+}
 
 
 // ***[ LAUNCH ]******************************************************************************************
