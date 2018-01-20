@@ -1,3 +1,5 @@
+// ***[ CONSTANTS ]******************************************************************************************
+
 // This section contains some game constants. It is not super interesting
 const GAME_WIDTH = 375;
 const GAME_HEIGHT = 500;
@@ -25,14 +27,14 @@ const UP_SHOOT_CODE = 87; // ADDED
 const DOWN_SHOOT_CODE = 83; // ADDED
 
 // These two constants allow us to DRY
-const MOVE_LEFT = 'left';
-const MOVE_RIGHT = 'right';
-const MOVE_UP = 'up'; // ADDED
-const MOVE_DOWN = 'down'; // ADDED
+const LEFT = 'left';
+const RIGHT = 'right';
+const UP = 'up'; // ADDED
+const DOWN = 'down'; // ADDED
 
 // Preload game images
 const images = {};
-['enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 'playerGameOver.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
+['upRainbowLaser.png', 'leftRainbowLaser.png', 'rightRainbowLaser.png', 'downRainbowLaser.png','enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 'playerGameOver.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -40,7 +42,7 @@ const images = {};
 
 
 
-
+// ***[ CLASSES ]******************************************************************************************
 
 // This section is where you will be doing most of your coding
 
@@ -76,16 +78,16 @@ class Player extends Entity {
 
     // This method is called by the game engine when left/right arrows are pressed
     move(direction) {
-        if (direction === MOVE_LEFT && this.x > 0) {
+        if (direction === LEFT && this.x > 0) {
             this.x = this.x - PLAYER_WIDTH;
         }
-        else if (direction === MOVE_RIGHT && this.x < GAME_WIDTH - PLAYER_WIDTH) {
+        else if (direction === RIGHT && this.x < GAME_WIDTH - PLAYER_WIDTH) {
             this.x = this.x + PLAYER_WIDTH;
         }
-        else if (direction === MOVE_UP && this.y > 0) {
+        else if (direction === UP && this.y > 0) {
             this.y = this.y - PLAYER_HEIGHT;
         }
-        else if (direction === MOVE_DOWN && this.y < GAME_HEIGHT - (2 * PLAYER_HEIGHT)) {
+        else if (direction === DOWN && this.y < GAME_HEIGHT - (2 * PLAYER_HEIGHT)) {
             this.y = this.y + PLAYER_HEIGHT;
         }
     }
@@ -97,7 +99,7 @@ class Player extends Entity {
 
 
 
-
+// ***[ ENGINE ]******************************************************************************************
 
 /*
 This section is a tiny game engine.
@@ -159,21 +161,22 @@ class Engine {
         // Listen for keyboard left/right and update the player
         document.addEventListener('keydown', e => {
             switch (e.keyCode) {
-                case LEFT_ARROW_CODE: this.player.move(MOVE_LEFT); break;
-                case RIGHT_ARROW_CODE: this.player.move(MOVE_RIGHT); break;
-                case UP_ARROW_CODE: this.player.move(MOVE_UP); break;
-                case DOWN_ARROW_CODE: this.player.move(MOVE_DOWN); break;
+                case LEFT_ARROW_CODE: this.player.move(LEFT); break;
+                case RIGHT_ARROW_CODE: this.player.move(RIGHT); break;
+                case UP_ARROW_CODE: this.player.move(UP); break;
+                case DOWN_ARROW_CODE: this.player.move(DOWN); break;
 
-                case LEFT_SHOOT_CODE: this.player.shoot(MOVE_LEFT); break;
-                case RIGHT_SHOOT_CODE: this.player.shoot(MOVE_RIGHT); break;
-                case UP_SHOOT_CODE: this.player.shoot(MOVE_UP); break;
-                case DOWN_SHOOT_CODE: this.player.shoot(MOVE_DOWN); break;
+                case LEFT_SHOOT_CODE: this.player.shoot(LEFT); break;
+                case RIGHT_SHOOT_CODE: this.player.shoot(RIGHT); break;
+                case UP_SHOOT_CODE: this.player.shoot(UP); break;
+                case DOWN_SHOOT_CODE: this.player.shoot(DOWN); break;
             }
         });
 
         this.gameLoop();
     }
 
+ // ***[ GAMELOOP ]******************************************************************************************
     /*
     This is the core of the game engine. The `gameLoop` function gets called ~60 times per second
     During each execution of the function, we will update the positions of all game entities
@@ -211,21 +214,20 @@ class Engine {
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
             this.ctx.font = 'bold 16px "Press Start 2P"';
-            this.ctx.fillStyle = '#60F';
-            this.ctx.fillText(this.score + ' * GAME OVER', 5, 30);
+            this.ctx.fillStyle = '#fffba6';
+            this.ctx.fillText('Ugh, Lion Lickers SUCK!', 5, 30);
+            this.ctx.fillStyle = '#FFF';
+            this.ctx.fillText('SCORE: ' + this.score, 5, 60);
         }
         else {
             // If player is not dead, then draw the score
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
-            this.ctx.fillText(this.score, 5, 30);
+            this.ctx.fillText('SCORE: ' + this.score, 5, 30);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
         }
-    }
-
-    setPostHitTimer() {
     }
 
     isPlayerDead() {
@@ -248,7 +250,7 @@ class Engine {
     }
 
 
-
+// ***[ LAUNCH ]******************************************************************************************
 
 // This section will start the game
 var gameEngine = new Engine(document.getElementById('game'));
