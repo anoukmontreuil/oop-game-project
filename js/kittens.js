@@ -90,6 +90,16 @@ class Enemy extends Entity {
     update(timeDiff) {
         this.y = this.y + timeDiff * this.speed;
     }
+
+    collidesWithHitBox(xPos, yPos) {
+        if (xPos >= this.x && xPos <= this.x + ENEMY_WIDTH
+            && yPos >= this.y + ENEMY_TOP_BUFFER
+            && yPos <= (this.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 class Player extends Entity {
@@ -262,16 +272,10 @@ class Engine {
                 delete this.enemies[enemyIdx];
             }
             this.shots.forEach((shot, shotIdx) => {
-                if (shot.direction === UP && enemy.y + ENEMY_HEIGHT >= shot.y && enemy.x === shot.x - (PLAYER_WIDTH / 2)
-                 || shot.direction === LEFT && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y - (PLAYER_HEIGHT / 2)
-                                            && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y + (PLAYER_HEIGHT / 2)
-                                            && enemy.x >= shot.x - (PLAYER_WIDTH / 2) 
-                                            && enemy.x <= shot.x + (PLAYER_WIDTH / 2)
-                 || shot.direction === RIGHT && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y - (PLAYER_HEIGHT / 2)
-                                             && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y + (PLAYER_HEIGHT / 2)
-                                             && enemy.x >= shot.x - (PLAYER_WIDTH / 2) 
-                                             && enemy.x <= shot.x + (PLAYER_WIDTH / 2)
-                 || shot.direction === DOWN && enemy.y + ENEMY_HEIGHT >= shot.y && enemy.x === shot.x - (PLAYER_WIDTH / 2)) {
+                if (shot.direction === UP && enemy.collidesWithHitBox(shot.x, shot.y)
+                 || shot.direction === LEFT && enemy.collidesWithHitBox(shot.x, shot.y)
+                 || shot.direction === RIGHT && enemy.collidesWithHitBox(shot.x, shot.y)
+                 || shot.direction === DOWN && enemy.collidesWithHitBox(shot.x, shot.y)) {
                     delete this.enemies[enemyIdx];
                     delete this.shots[shotIdx];
                 }   
