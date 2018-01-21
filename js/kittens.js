@@ -84,7 +84,7 @@ class Enemy extends Entity {
         this.y = -ENEMY_HEIGHT;
         this.sprite = images['enemy.png'];
         // Each enemy should have a different speed
-        this.speed = Math.random() / 3.5 + (level * 0.025) + 0.25;
+        this.speed = Math.random() / 3.5 + (level * 0.05) + 0.25;
     }
 
     update(timeDiff) {
@@ -145,6 +145,9 @@ class Engine {
     constructor(element) {
         // Set the level
         this.level = 1;
+
+        // Set the bonus;
+        this.bonus = 0;
 
         // Setup the player
         this.player = new Player();
@@ -272,6 +275,7 @@ class Engine {
                 if (enemy.collidesWithHitBox(shot.x, shot.y)) {
                     delete this.enemies[enemyIdx];
                     delete this.shots[shotIdx];
+                    this.bonus += 100;
                 }   
             });
         });
@@ -294,17 +298,21 @@ class Engine {
             this.player.render(this.ctx);
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
-            this.ctx.fillText('Ugh...', (GAME_WIDTH / 2) - 50, (GAME_HEIGHT / 12) * 1);
-            this.ctx.fillText('Lion Lickers SUCK!', (GAME_WIDTH / 12) * 1.5, (GAME_HEIGHT / 12) * 2);
+            this.ctx.fillText('Ugh...', (GAME_WIDTH / 3), (GAME_HEIGHT / 12) * 1);
+            this.ctx.fillText('Lion Lickers SUCK!', (GAME_WIDTH / 15) * 1.5, (GAME_HEIGHT / 12) * 2);
             this.ctx.fillStyle = '#FFF';
-            this.ctx.fillText('SCORE: ' + this.score, (GAME_WIDTH / 12) * 3, (GAME_HEIGHT / 12) * 6);
+            this.ctx.fillText('SCORE: ' + this.score, (GAME_WIDTH / 15) * 2, (GAME_HEIGHT / 12) * 5);
+            this.ctx.fillText('BONUS: ' + this.bonus, (GAME_WIDTH / 15) * 2, (GAME_HEIGHT / 12) * 6);
+            this.ctx.fillStyle = '#FF0';
+            this.ctx.fillText('TOTAL: ' + (this.score + this.bonus), (GAME_WIDTH / 15) * 2, (GAME_HEIGHT / 12) * 8);
         }
         else {
             // If player is not dead, then draw the score
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('SCORE: ' + this.score, 5, GAME_HEIGHT / 15);
-            this.ctx.fillStyle = '#FFF';
+            this.ctx.fillText('BONUS: ' + this.bonus, 5, (GAME_HEIGHT / 15) * 2);
+            this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('LIVES: ' + this.player.numLives, (GAME_WIDTH / 11) * 7, GAME_HEIGHT / 15);
             this.ctx.fillText('LEVEL: ' + this.level, (GAME_WIDTH / 11) * 7, (GAME_HEIGHT / 15) * 2);
             // Set the time marker and redraw
