@@ -92,9 +92,9 @@ class Enemy extends Entity {
     }
 
     collidesWithHitBox(xPos, yPos) {
-        if (xPos >= this.x && xPos <= this.x + ENEMY_WIDTH
+        if (xPos >= this.x && xPos < this.x + ENEMY_WIDTH
             && yPos >= this.y + ENEMY_TOP_BUFFER
-            && yPos <= (this.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER)) {
+            && yPos < (this.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER)) {
             return true;
         } else {
             return false;
@@ -129,7 +129,6 @@ class Player extends Entity {
 
     shoot(direction) {
         gameEngine.addShot(this.x, this.y, direction);
-        console.log("shootin' " + direction + "!");
     }
 }
 
@@ -265,17 +264,12 @@ class Engine {
         this.enemies.forEach((enemy, enemyIdx) => {
             if (enemy.y > GAME_HEIGHT) {
                 delete this.enemies[enemyIdx];
-            } else if ((enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= this.player.y
-                      && (this.player.y + PLAYER_HEIGHT) > enemy.y + ENEMY_TOP_BUFFER
-                      && enemy.x === this.player.x) {
+            } else if (enemy.collidesWithHitBox(this.player.x, this.player.y)) {
                 this.player.numLives--;
                 delete this.enemies[enemyIdx];
             }
             this.shots.forEach((shot, shotIdx) => {
-                if (shot.direction === UP && enemy.collidesWithHitBox(shot.x, shot.y)
-                 || shot.direction === LEFT && enemy.collidesWithHitBox(shot.x, shot.y)
-                 || shot.direction === RIGHT && enemy.collidesWithHitBox(shot.x, shot.y)
-                 || shot.direction === DOWN && enemy.collidesWithHitBox(shot.x, shot.y)) {
+                if (enemy.collidesWithHitBox(shot.x, shot.y)) {
                     delete this.enemies[enemyIdx];
                     delete this.shots[shotIdx];
                 }   
