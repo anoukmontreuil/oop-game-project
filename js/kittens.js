@@ -3,6 +3,7 @@
 // This section contains some game constants. It is not super interesting
 const GAME_WIDTH = 375;
 const GAME_HEIGHT = 500;
+const LEVEL_THRESHOLD = 25000;
 
 const ENEMY_WIDTH = 75;
 const ENEMY_HEIGHT = 156;
@@ -154,7 +155,8 @@ class Engine {
 
     // This method kicks off the game
     start() {
-        this.score = 0;
+        this.level = 1;        
+        this.score = 1;
         this.lastFrame = Date.now();
 
         // Listen for keyboard left/right and update the player
@@ -195,6 +197,9 @@ class Engine {
         // Increase the score!
         this.score += timeDiff;
 
+        // Recalculate level with each new score
+        this.level = Math.ceil(this.score / LEVEL_THRESHOLD);
+
         // Call update on all enemies
         this.enemies.forEach(enemy => enemy.update(timeDiff));
 
@@ -234,7 +239,9 @@ class Engine {
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('SCORE: ' + this.score, 5, 30);
+            this.ctx.fillStyle = '#FFF';
             this.ctx.fillText('LIVES: ' + this.player.numLives, (GAME_WIDTH / 11) * 7, 30);
+            this.ctx.fillText('LEVEL: ' + this.level, (GAME_WIDTH / 11) * 7, 60);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
