@@ -85,7 +85,7 @@ class Enemy extends Entity {
         this.y = -ENEMY_HEIGHT;
         this.sprite = images['enemy.png'];
         // Each enemy should have a different speed
-        this.speed = Math.random() / 3.5 + (level * 0.05) + 0.25;
+        this.speed = Math.random() / 3.5 + (level * 0.033) + 0.25;
     }
 
     update(timeDiff) {
@@ -208,7 +208,7 @@ class Engine {
             while (typeof this.shots[shotIdx] === 'object' && shotIdx < MAX_ACTIVE_SHOTS) {
                 shotIdx++;
             }
-            this.shots[shotIdx] = new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 3), direction);
+            this.shots[shotIdx] = new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 2), direction);
         }
     }
 
