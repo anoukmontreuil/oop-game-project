@@ -5,7 +5,8 @@ const GAME_WIDTH = 375;
 const GAME_HEIGHT = 500;
 const LEVEL_THRESHOLD = 25000; // ADDED for the purpose of calculating levels & enemy speed @ spawn
 
-const SHOT_SPEED = 3; // ADDED for the purpose of customizing shot speed.
+const SHOT_SPEED = 2; // ADDED for the purpose of customizing shot speed.
+const MAX_ACTIVE_SHOTS = 1; // ADDED for the purpose of limiting the size of the shots array.
 
 const ENEMY_WIDTH = 75;
 const ENEMY_HEIGHT = 156;
@@ -183,7 +184,7 @@ class Engine {
 
     // This method finds a random spot where there is no enemy, and puts one in there
     addEnemy() {
-        var enemySpots = (GAME_WIDTH / ENEMY_WIDTH);
+        var enemySpots = Math.floor(GAME_WIDTH / ENEMY_WIDTH);
 
         var enemySpot;
         // Keep looping until we find a free enemy spot at random
@@ -194,8 +195,21 @@ class Engine {
         this.enemies[enemySpot] = new Enemy(enemySpot * ENEMY_WIDTH, this.level);
     }
 
+    /* ORIGINAL 'addShot'
     addShot(xPos, yPos, direction) {
         this.shots.push(new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 2), direction));
+    }*/
+
+    addShot(xPos, yPos, direction) {
+        // If the length of active shots is smaller than the allowed numbers of shots;
+        // store the new shot into the first free spot in the 'shots' array. (Otherwise: do nothing.)
+        if (this.shots.filter(s => s).length < MAX_ACTIVE_SHOTS) {
+            let shotIdx = 0;
+            while (typeof this.shots[shotIdx] === 'object' && shotIdx < MAX_ACTIVE_SHOTS) {
+                shotIdx++;
+            }
+            this.shots[shotIdx] = new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 3), direction);
+        }
     }
 
     // ADDED: Setting up the shots array so that, eventually, shots can be deleted if they're off canvas.
@@ -282,7 +296,7 @@ class Engine {
 
         // Check if any off-canvas shots should be deleted
         this.shots.forEach((shot, shotIndex) => {
-            if (shot.x > GAME_WIDTH || shot.y > GAME_HEIGHT) {
+            if (shot.x > GAME_WIDTH || shot.x < 0 || shot.y > GAME_HEIGHT || shot.y < 0) {
                 delete this.shots[shotIndex];
             }
         });
