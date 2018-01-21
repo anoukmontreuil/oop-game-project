@@ -5,6 +5,8 @@ const GAME_WIDTH = 375;
 const GAME_HEIGHT = 500;
 const LEVEL_THRESHOLD = 25000; // ADDED for the purpose of calculating levels & enemy speed @ spawn
 
+const SHOT_SPEED = 3; // ADDED for the purpose of customizing shot speed.
+
 const ENEMY_WIDTH = 75;
 const ENEMY_HEIGHT = 156;
 const ENEMY_TOP_BUFFER = 58;
@@ -35,7 +37,9 @@ const DOWN = 'down'; // ADDED
 
 // Preload game images
 const images = {};
-['upRainbowLaser.png', 'leftRainbowLaser.png', 'rightRainbowLaser.png', 'downRainbowLaser.png','enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 'playerGameOver.png', 'smallfullheart.png', 'smallemptyheart.png'].forEach(imgName => {
+['upRainbowLaser.png', 'leftRainbowLaser.png', 'rightRainbowLaser.png', 'downRainbowLaser.png',
+'enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 
+'playerGameOver.png'/*, 'smallfullheart.png', 'smallemptyheart.png'*/].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -50,6 +54,26 @@ const images = {};
 class Entity {
     render(ctx) {
         ctx.drawImage(this.sprite, this.x, this.y);
+    }
+}
+
+class Shot extends Entity {
+    constructor(xPos, yPos, direction) {
+        super();
+        this.x = xPos;
+        this.y = yPos;
+        this.direction = direction;
+        this.speed = SHOT_SPEED;
+        this.sprite = images[direction + 'RainbowLaser.png'];
+    }
+
+    update(timeDiff) {
+        switch (this.direction) {
+            case UP: this.y = this.y - timeDiff * this.speed; break;
+            case LEFT: this.x = this.x - timeDiff * this.speed; break;
+            case RIGHT: this.x = this.x + timeDiff * this.speed; break;
+            case DOWN: this.y = this.y + timeDiff * this.speed; break;
+        }
     }
 }
 
@@ -94,6 +118,7 @@ class Player extends Entity {
     }
 
     shoot(direction) {
+        gameEngine.addShot(this.x, this.y, direction);
         console.log("shootin' " + direction + "!");
     }
 }
@@ -117,6 +142,7 @@ class Engine {
 
         // Setup enemies, making sure there are always three
         this.setupEnemies();
+        this.setupShots();
 
         // Setup the <canvas> element where we will be drawing
         var canvas = document.createElement('canvas');
@@ -154,6 +180,17 @@ class Engine {
         }
 
         this.enemies[enemySpot] = new Enemy(enemySpot * ENEMY_WIDTH, this.level);
+    }
+
+    addShot(xPos, yPos, direction) {
+        this.shots.push(new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 2), direction));
+    }
+
+    // ADDED: Setting up the shots array so that, eventually, shots can be deleted if they're off canvas.
+    setupShots() {
+        if (!this.shots) {
+            this.shots = [];
+        }
     }
 
     // This method kicks off the game
@@ -202,6 +239,9 @@ class Engine {
         // Recalculate level with each new score
         this.level = Math.ceil(this.score / LEVEL_THRESHOLD);
 
+        // ADDED: Call update on all shots 
+        this.shots.forEach(shot => shot.update(timeDiff));
+
         // Call update on all enemies
         this.enemies.forEach(enemy => enemy.update(timeDiff));
 
@@ -209,8 +249,9 @@ class Engine {
         this.ctx.drawImage(images['cookie_cat_8-bit_starry_background.png'], 0, 0); // draw the cookie cat background
         this.enemies.forEach(enemy => enemy.render(this.ctx)); // draw the enemies
         this.player.render(this.ctx); // draw the player
+        this.shots.forEach(shot => shot.render(this.ctx)); // * ADDED
 
-        // Check if any enemies should die
+        // Check if any enemies should die; if player's lives decrement, or if shots should be deleted.
         this.enemies.forEach((enemy, enemyIdx) => {
             if (enemy.y > GAME_HEIGHT) {
                 delete this.enemies[enemyIdx];
@@ -220,9 +261,32 @@ class Engine {
                 this.player.numLives--;
                 delete this.enemies[enemyIdx];
             }
+            this.shots.forEach((shot, shotIdx) => {
+                if (shot.direction === UP && enemy.y + ENEMY_HEIGHT >= shot.y && enemy.x === shot.x - (PLAYER_WIDTH / 2)
+                 || shot.direction === LEFT && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y - (PLAYER_HEIGHT / 2)
+                                            && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y + (PLAYER_HEIGHT / 2)
+                                            && enemy.x >= shot.x - (PLAYER_WIDTH / 2) 
+                                            && enemy.x <= shot.x + (PLAYER_WIDTH / 2)
+                 || shot.direction === RIGHT && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y - (PLAYER_HEIGHT / 2)
+                                             && enemy.y + (enemy.y + ENEMY_TOP_BUFFER) + (ENEMY_HEIGHT - ENEMY_TOP_BUFFER) >= shot.y + (PLAYER_HEIGHT / 2)
+                                             && enemy.x >= shot.x - (PLAYER_WIDTH / 2) 
+                                             && enemy.x <= shot.x + (PLAYER_WIDTH / 2)
+                 || shot.direction === DOWN && enemy.y + ENEMY_HEIGHT >= shot.y && enemy.x === shot.x - (PLAYER_WIDTH / 2)) {
+                    delete this.enemies[enemyIdx];
+                    delete this.shots[shotIdx];
+                }   
+            });
+        });
+
+        // Check if any off-canvas shots should be deleted
+        this.shots.forEach((shot, shotIndex) => {
+            if (shot.x > GAME_WIDTH || shot.y > GAME_HEIGHT) {
+                delete this.shots[shotIndex];
+            }
         });
 
         this.setupEnemies();
+        this.setupShots();
 
         // Check if player is dead
         if (this.isPlayerDead()) {
@@ -241,10 +305,10 @@ class Engine {
             // If player is not dead, then draw the score
             this.ctx.font = 'bold 16px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
-            this.ctx.fillText('SCORE: ' + this.score, 5, GAME_HEIGHT / 12);
+            this.ctx.fillText('SCORE: ' + this.score, 5, GAME_HEIGHT / 15);
             this.ctx.fillStyle = '#FFF';
-            this.ctx.fillText('LIVES: ' + this.player.numLives, (GAME_WIDTH / 11) * 7, GAME_HEIGHT / 12);
-            this.ctx.fillText('LEVEL: ' + this.level, (GAME_WIDTH / 11) * 7, (GAME_HEIGHT / 12) * 2);
+            this.ctx.fillText('LIVES: ' + this.player.numLives, (GAME_WIDTH / 11) * 7, GAME_HEIGHT / 15);
+            this.ctx.fillText('LEVEL: ' + this.level, (GAME_WIDTH / 11) * 7, (GAME_HEIGHT / 15) * 2);
             // Set the time marker and redraw
             this.lastFrame = Date.now();
             requestAnimationFrame(this.gameLoop);
