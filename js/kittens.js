@@ -9,6 +9,9 @@ const SHOT_SPEED = 2; // ADDED for the purpose of customizing shot speed.
 const MAX_ACTIVE_SHOTS = 1; // ADDED for the purpose of limiting the size of the shots array.
 
 const BG_MUSIC = 'audio/Chacarron_Loop.mp3';
+const GAME_OVER_PLAYER_CRY = 'audio/Crying_Steven.mp3';
+const GAME_OVER_BG_MUSIC = 'audio/Game_Over_FFI_Organ.mp3';
+const ENEMY_IMPACT_SFX_ARRAY = ['audio/Thud_1.mp3', 'audio/Thud_2.mp3'];
 const JEWELY_SND = 'audio/Jewely.mp3';
 
 const ENEMY_WIDTH = 75;
@@ -42,8 +45,8 @@ const DOWN = 'down'; // ADDED
 // Preload game images
 const images = {};
 ['upRainbowLaser.png', 'leftRainbowLaser.png', 'rightRainbowLaser.png', 'downRainbowLaser.png',
-'enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'lion_licker_static_bg.gif', 
-'playerGameOver.png'/*, 'smallfullheart.png', 'smallemptyheart.png'*/].forEach(imgName => {
+'enemy.png', 'cookie_cat_8-bit_starry_background.png', 'player.png', 'player_hit.png', 
+'lion_licker_static_bg_DARK.gif', 'playerGameOver.png'].forEach(imgName => {
     var img = document.createElement('img');
     img.src = 'images/' + imgName;
     images[imgName] = img;
@@ -287,6 +290,8 @@ class Engine {
             if (enemy.y > GAME_HEIGHT) {
                 delete this.enemies[enemyIdx];
             } else if (enemy.collidesWithHitBox(this.player.x, this.player.y)) {
+                let impactThud = new Audio(ENEMY_IMPACT_SFX_ARRAY[Math.round(Math.random())]); // TODO
+                impactThud.play();
                 this.player.numLives--;
                 delete this.enemies[enemyIdx];
             }
@@ -313,13 +318,17 @@ class Engine {
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
             bgMusic.pause();
+            bgMusic.currentTime = 0;
+            gameOverPlayerCry.play();
+            //gameOverBgMusic.play();
             this.player.sprite = images['playerGameOver.png'];
-            this.ctx.drawImage(images['lion_licker_static_bg.gif'], 0, 0);
+            this.ctx.drawImage(images['lion_licker_static_bg_DARK.gif'], 0, 0);
             this.player.render(this.ctx);
-            this.ctx.font = 'bold 16px "Press Start 2P"';
+            this.ctx.font = 'bold 26px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
-            this.ctx.fillText('Ugh...', (GAME_WIDTH / 3), (GAME_HEIGHT / 12) * 1);
-            this.ctx.fillText('Lion Lickers SUCK!', (GAME_WIDTH / 15) * 1.5, (GAME_HEIGHT / 12) * 2);
+            this.ctx.fillText('Ugh...', (GAME_WIDTH / 4), (GAME_HEIGHT / 12) * 1);
+            this.ctx.font = 'bold 14px "Press Start 2P"';
+            this.ctx.fillText('Lion Lickers OVERLOAD!', (GAME_WIDTH / 15), (GAME_HEIGHT / 12) * 2);
             this.ctx.fillStyle = '#FFF';
             this.ctx.fillText('SCORE: ' + this.score, (GAME_WIDTH / 15) * 2, (GAME_HEIGHT / 12) * 5);
             this.ctx.fillText('BONUS: ' + this.bonus, (GAME_WIDTH / 15) * 2, (GAME_HEIGHT / 12) * 6);
@@ -361,3 +370,6 @@ gameEngine.start();
 let bgMusic = new Audio(BG_MUSIC);
 bgMusic.loop = true;
 bgMusic.play();
+
+//let gameOverBgMusic = new Audio(GAME_OVER_BG_MUSIC);
+let gameOverPlayerCry = new Audio(GAME_OVER_PLAYER_CRY);
