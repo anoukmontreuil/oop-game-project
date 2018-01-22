@@ -3,10 +3,13 @@
 // This section contains some game constants. It is not super interesting
 const GAME_WIDTH = 375;
 const GAME_HEIGHT = 500;
-const LEVEL_THRESHOLD = 25000; // ADDED for the purpose of calculating levels & enemy speed @ spawn
+const LEVEL_THRESHOLD = 25000; // ADDED for the purpose of calculating levels & enemy speed @ spawn¸
 
 const SHOT_SPEED = 2; // ADDED for the purpose of customizing shot speed.
 const MAX_ACTIVE_SHOTS = 1; // ADDED for the purpose of limiting the size of the shots array.
+
+const BG_MUSIC = 'audio/Chacarron_Loop.mp3';
+const JEWELY_SND = 'audio/Jewely.mp3';
 
 const ENEMY_WIDTH = 75;
 const ENEMY_HEIGHT = 156;
@@ -45,8 +48,6 @@ const images = {};
     img.src = 'images/' + imgName;
     images[imgName] = img;
 });
-
-
 
 // ***[ CLASSES ]******************************************************************************************
 
@@ -209,6 +210,10 @@ class Engine {
                 shotIdx++;
             }
             this.shots[shotIdx] = new Shot(xPos + (PLAYER_WIDTH / 2), yPos + (PLAYER_HEIGHT / 2), direction);
+            // Plays a sound whenever a shot is actually fired.
+            let sound = new Audio();
+            sound.src = JEWELY_SND;
+            sound.play();
         }
     }
 
@@ -240,7 +245,7 @@ class Engine {
         });
 
         // TODO: Add Splash Screen...
-
+    
         this.gameLoop();
     }
 
@@ -307,6 +312,7 @@ class Engine {
         // Check if player is dead
         if (this.isPlayerDead()) {
             // If they are dead, then it's game over!
+            bgMusic.pause();
             this.player.sprite = images['playerGameOver.png'];
             this.ctx.drawImage(images['lion_licker_static_bg.gif'], 0, 0);
             this.player.render(this.ctx);
@@ -322,7 +328,7 @@ class Engine {
         }
         else {
             // If player is not dead, then draw the score
-            this.ctx.font = 'bold 16px "Press Start 2P"';
+            this.ctx.font = 'bold 14px "Press Start 2P"';
             this.ctx.fillStyle = '#fffba6';
             this.ctx.fillText('SCORE: ' + this.score, 5, GAME_HEIGHT / 15);
             this.ctx.fillText('BONUS: ' + this.bonus, 5, (GAME_HEIGHT / 15) * 2);
@@ -351,3 +357,7 @@ class Engine {
 var gameEngine = new Engine(document.getElementById('game'));
 
 gameEngine.start();
+
+let bgMusic = new Audio(BG_MUSIC);
+bgMusic.loop = true;
+bgMusic.play();
